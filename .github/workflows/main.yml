@@ -12,8 +12,12 @@ jobs:
       - run: ls ./cypress/e2e/**/*.cy.js
       - run: ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""]'
       - run: ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""] | [_nwise(length / 4 | ceil)]'
+      - id: spec
+        run: |
+          spec=$(ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""] | [_nwise(length / 4 | ceil)][${{ matrix.chunk }}][]' | xargs echo | sed 's/ /,/g')
+          echo "value=$spec" >> $GITHUB_OUTPUT
+      - run: echo ${{ steps.spec.outputs.value }}
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          spec: |
-            ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""] | [_nwise(length / 4 | ceil)][${{ matrix.chunk }}][]'
+          spec: ${{ steps.spec.outputs.value }}
