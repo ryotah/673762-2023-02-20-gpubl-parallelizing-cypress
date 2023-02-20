@@ -3,7 +3,17 @@ on: [push, workflow_dispatch]
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v3
+      - run: ls ./cypress/e2e/**/*.cy.js
+      - run: ls ./cypress/e2e/**/*.cy.js
+      - run: ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""]'
+      - run: ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""] | [_nwise(length / 4 | ceil)]'
       - name: Cypress run
         uses: cypress-io/github-action@v5
+        with:
+          spec: |
+            ls ./cypress/e2e/**/*.cy.js | jq -R -s 'split("\n") - [""] | [_nwise(length / 4 | ceil)][${{ matrix.chunk }}][]'
